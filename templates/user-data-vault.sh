@@ -3,6 +3,7 @@
 # run-consul script to configure and start Consul in client mode and then the run-vault script to configure and start
 # Vault in server mode. Note that this script assumes it's running in an AMI built from the Packer template in
 # examples/vault-consul-ami/vault-consul.json.
+# shellcheck disable=2154
 
 set -e
 
