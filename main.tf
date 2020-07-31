@@ -161,13 +161,9 @@ module "consul_cluster" {
   ssh_key_name                = var.ssh_key_name
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# THE USER DATA SCRIPT THAT WILL RUN ON EACH CONSUL SERVER WHEN IT'S BOOTING
 # This script will configure and start Consul
-# ---------------------------------------------------------------------------------------------------------------------
-
 data "template_file" "user_data_consul" {
-  template = file("${path.module}/examples/root-example/user-data-consul.sh")
+  template = file("${path.module}/templates/user-data-consul.sh")
 
   vars = {
     consul_cluster_tag_key   = var.consul_cluster_tag_key
@@ -175,13 +171,9 @@ data "template_file" "user_data_consul" {
   }
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# DEPLOY THE CLUSTERS IN THE DEFAULT VPC AND AVAILABILITY ZONES
-# Using the default VPC and subnets makes this example easy to run and test, but it means Consul and Vault are
-# accessible from the public Internet. In a production deployment, we strongly recommend deploying into a custom VPC
-# and private subnets. Only the ELB should run in the public subnets.
-# ---------------------------------------------------------------------------------------------------------------------
-
+###
+# define the aws network to place the provisioned ec2 resources
+###
 data "aws_vpc" "default" {
   default = var.use_default_vpc
   tags    = var.vpc_tags
