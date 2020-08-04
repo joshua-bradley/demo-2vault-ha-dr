@@ -21,7 +21,6 @@ terraform {
 data "aws_ami" "vault_consul" {
   most_recent = true
 
-  # If we change the AWS Account in which test are run, update this value.
   owners = ["562637147889"]
 
   filter {
