@@ -1,7 +1,7 @@
 variable "owner" {
   description = "The OS user who should be given ownership over the certificate files."
   type        = string
-  default     = "nano-bot"
+  default     = "vault"
 }
 
 variable "dns_names" {

@@ -87,16 +87,40 @@ variable "consul_cluster_size" {
 variable "vault_instance_type" {
   description = "The type of EC2 Instance to run in the Vault ASG"
   type        = string
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "consul_instance_type" {
   description = "The type of EC2 Instance to run in the Consul ASG"
   type        = string
-  default     = "t2.nano"
+  default     = "t3.micro"
 }
 
 variable "consul_cluster_tag_key" {
   description = "The tag the Consul EC2 Instances will look for to automatically discover each other and form a cluster."
   type        = string
   default     = "consul-servers"
+}
+
+variable "region" {
+  description = "Region to deploy the vault cluster"
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "standard_tags" {
+  description = "Standard tags to set on the Instances in the ASG"
+  type        = map(string)
+  default = {
+    "project-name" = "hc-jb-zoox"
+    "owner"        = "hc-joshua"
+    "TTL"          = "6"
+  }
+}
+
+data "aws_region" "current" {
+}
+
+variable "subnet_second_octet" {
+  default = "0"
+}

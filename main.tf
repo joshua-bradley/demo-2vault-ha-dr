@@ -13,30 +13,34 @@ terraform {
   required_version = ">= 0.12"
 }
 
+provider "aws" {
+  version = "~> 2.5"
+  region  = var.region
+}
+
+provider "aws" {
+  alias  = "eu"
+  region = "eu-west-2"
+}
+
 ###
-# Use the latest publicly available pre-built vault-consul ami for the base of each asg
-# !! WARNING !! These amis are meant only as a convenience when initially testing this repo. Do NOT use them in production
-# as they contain TLS certificate files that are publicly available from the Module repo containing their source code.
-###
-data "aws_ami" "vault_consul" {
-  most_recent = true
 
-  owners = ["562637147889"]
+resource "random_id" "cluster_name" {
+  byte_length = 4
+}
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+# Local for tag to attach to all items
+locals {
+  tags = merge(
+    var.standard_tags,
+    {
+      "ClusterName" = random_id.cluster_name.hex
+    },
+  )
+}
 
-  filter {
-    name   = "is-public"
-    values = ["true"]
-  }
-
-  filter {
-    name   = "name"
-    values = ["vault-consul-ubuntu-*"]
-  }
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 ###
@@ -49,11 +53,11 @@ module "vault_cluster" {
   cluster_size  = var.vault_cluster_size
   instance_type = var.vault_instance_type
 
-  ami_id    = var.ami_id == null ? data.aws_ami.vault_consul.image_id : var.ami_id
+  ami_id    = var.ami_id
   user_data = data.template_file.user_data_vault_cluster.rendered
 
-  vpc_id     = data.aws_vpc.default.id
-  subnet_ids = data.aws_subnet_ids.default.ids
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnets
 
   health_check_type = "EC2"
 
@@ -69,7 +73,7 @@ module "vault_cluster" {
 
 # Consul iam policies to allow vault cluster to discover consul backend
 module "consul_iam_policies_servers" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-iam-policies?ref=v0.7.6"
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-iam-policies?ref=v0.7.7"
 
   iam_role_id = module.vault_cluster.iam_role_id
 }
@@ -79,7 +83,7 @@ data "template_file" "user_data_vault_cluster" {
   template = file("${path.module}/templates/user-data-vault.sh")
 
   vars = {
-    aws_region               = data.aws_region.current.name
+    aws_region               = var.region
     consul_cluster_tag_key   = var.consul_cluster_tag_key
     consul_cluster_tag_value = var.consul_cluster_name
   }
@@ -87,7 +91,7 @@ data "template_file" "user_data_vault_cluster" {
 
 # Consul sg for allowing internal communications between agents and servers
 module "security_group_rules" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-client-security-group-rules?ref=v0.7.6"
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-client-security-group-rules?ref=v0.7.7"
 
   security_group_id = module.vault_cluster.security_group_id
 
@@ -106,8 +110,8 @@ module "vault_elb" {
 
   name = var.vault_cluster_name
 
-  vpc_id     = data.aws_vpc.default.id
-  subnet_ids = data.aws_subnet_ids.default.ids
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnets
 
   # Associate the ELB with the instances created by the Vault Autoscaling group
   vault_asg_name = module.vault_cluster.asg_name
@@ -115,6 +119,8 @@ module "vault_elb" {
   # To make testing easier, we allow requests from any IP address here but in a production deployment, we *strongly*
   # recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
+
+  health_check_protocol = "HTTPS"
 
   # In order to access Vault over HTTPS, we need a domain name that matches the TLS cert
   create_dns_entry = var.create_dns_entry
@@ -127,16 +133,16 @@ module "vault_elb" {
 }
 
 # Look up the Route 53 Hosted Zone by domain name
-data "aws_route53_zone" "selected" {
-  count = var.create_dns_entry ? 1 : 0
-  name  = "${var.hosted_zone_domain_name}."
-}
+# data "aws_route53_zone" "selected" {
+#   count = var.create_dns_entry ? 1 : 0
+#   name  = "${var.hosted_zone_domain_name}."
+# }
 
 ###
 # Deploy consul server cluster
 ###
 module "consul_cluster" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-cluster?ref=v0.7.6"
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-cluster?ref=v0.7.7"
 
   cluster_name  = var.consul_cluster_name
   cluster_size  = var.consul_cluster_size
@@ -146,11 +152,11 @@ module "consul_cluster" {
   cluster_tag_key   = var.consul_cluster_tag_key
   cluster_tag_value = var.consul_cluster_name
 
-  ami_id    = var.ami_id == null ? data.aws_ami.vault_consul.image_id : var.ami_id
+  ami_id    = var.ami_id
   user_data = data.template_file.user_data_consul.rendered
 
-  vpc_id     = data.aws_vpc.default.id
-  subnet_ids = data.aws_subnet_ids.default.ids
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnets
 
   # To make testing easier, we allow Consul and SSH requests from any IP address here but in a production
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
@@ -173,15 +179,46 @@ data "template_file" "user_data_consul" {
 ###
 # define the aws network to place the provisioned ec2 resources
 ###
-data "aws_vpc" "default" {
-  default = var.use_default_vpc
-  tags    = var.vpc_tags
-}
+# data "aws_vpc" "default" {
+#   default = var.use_default_vpc
+#   tags    = var.vpc_tags
+# }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
-  tags   = var.subnet_tags
-}
+# data "aws_subnet_ids" "default" {
+#   vpc_id = module.vpc.default.id
+#   tags   = var.subnet_tags
+# }
 
-data "aws_region" "current" {
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+  name   = "${random_id.cluster_name.hex}-vpc"
+
+  cidr = "10.${var.subnet_second_octet}.0.0/16"
+
+  azs = data.aws_availability_zones.available.names
+  private_subnets = [
+    for num in range(0, length(data.aws_availability_zones.available.names)) :
+    cidrsubnet("10.${var.subnet_second_octet}.1.0/16", 8, 1 + num)
+  ]
+  public_subnets = [
+    for num in range(0, length(data.aws_availability_zones.available.names)) :
+    cidrsubnet("10.${var.subnet_second_octet}.101.0/16", 8, 101 + num)
+  ]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
+
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  public_subnet_tags = {
+    Name = "hc-jb-name-public"
+  }
+
+  # tags = local.tags
+
+  vpc_tags = {
+    Name    = "${random_id.cluster_name.hex}-vpc"
+    Purpose = "vault"
+  }
 }

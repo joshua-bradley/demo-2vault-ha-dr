@@ -2,29 +2,27 @@
     "min_packer_version": "1.6.0",
     "variables": {
         "aws_region": "us-west-2",
-        "vault_version": "1.1.0",
+        "vault_module_version": "v0.13.8",
+        "vault_version": "1.5.0",
         "consul_module_version": "v0.7.6",
-        "consul_version": "1.5.3",
+        "consul_version": "1.8.1",
         "consul_download_url": "{{env `CONSUL_DOWNLOAD_URL`}}",
         "vault_download_url": "{{env `VAULT_DOWNLOAD_URL`}}",
-        "install_auth_signing_script": "true",
-        "ca_public_key_path": null,
-        "tls_public_key_path": null,
-        "tls_private_key_path": null
+        "install_auth_signing_script": "true"
     },
     "builders": [
         {
-            "ami_name": "vault-consul-ubuntu18-{{isotime | clean_resource_name}}-{{uuid}}",
-            "ami_description": "An Ubuntu 18.04 AMI that has Vault and Consul installed.",
+            "ami_name": "vault-consul-ubuntu16-{{isotime | clean_resource_name}}-{{uuid}}",
+            "ami_description": "An Ubuntu 16.04 AMI that has Vault and Consul installed.",
             "instance_type": "t3.micro",
-            "name": "ubuntu18-ami",
+            "name": "ubuntu16-ami",
             "region": "{{user `aws_region`}}",
             "type": "amazon-ebs",
             "source_ami_filter": {
                 "filters": {
                     "virtualization-type": "hvm",
                     "architecture": "x86_64",
-                    "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*",
+                    "name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*",
                     "block-device-mapping.volume-type": "gp2",
                     "root-device-type": "ebs"
                 },
@@ -40,18 +38,7 @@
         {
             "type": "shell",
             "inline": [
-                "mkdir -p /tmp/terraform-aws-vault/modules"
-            ]
-        },
-        {
-            "type": "file",
-            "source": "{{template_dir}}/../../modules/",
-            "destination": "/tmp/terraform-aws-vault/modules",
-            "pause_before": "30s"
-        },
-        {
-            "type": "shell",
-            "inline": [
+                "git clone --branch {{user `vault_module_version`}} https://github.com/hashicorp/terraform-aws-vault.git /tmp/terraform-aws-vault",
                 "if test -n \"{{user `vault_download_url`}}\"; then",
                 " /tmp/terraform-aws-vault/modules/install-vault/install-vault --download-url {{user `vault_download_url`}};",
                 "else",
@@ -61,22 +48,22 @@
         },
         {
             "type": "file",
-            "source": "{{template_dir}}/auth/sign-request.py",
+            "source": "{{template_dir}}/sign-request.py",
             "destination": "/tmp/sign-request.py"
         },
         {
             "type": "file",
-            "source": "{{user `ca_public_key_path`}}",
+            "source": "{{template_dir}}/ca.crt.pem",
             "destination": "/tmp/ca.crt.pem"
         },
         {
             "type": "file",
-            "source": "{{user `tls_public_key_path`}}",
+            "source": "{{template_dir}}/vault.crt.pem",
             "destination": "/tmp/vault.crt.pem"
         },
         {
             "type": "file",
-            "source": "{{user `tls_private_key_path`}}",
+            "source": "{{template_dir}}/vault.key.pem",
             "destination": "/tmp/vault.key.pem"
         },
         {
@@ -108,7 +95,7 @@
             ],
             "inline_shebang": "/bin/bash -e",
             "only": [
-                "ubuntu18-ami"
+                "ubuntu16-ami"
             ]
         },
         {
@@ -126,10 +113,10 @@
         {
             "type": "shell",
             "only": [
-                "ubuntu18-ami"
+                "ubuntu16-ami"
             ],
             "inline": [
-                "/tmp/terraform-aws-consul/modules/setup-systemd-resolved/setup-systemd-resolved"
+                "/tmp/terraform-aws-consul/modules/install-dnsmasq/install-dnsmasq"
             ],
             "pause_before": "30s"
         }
