@@ -7,10 +7,19 @@
 # AWS_SECRET_ACCESS_KEY
 # AWS_DEFAULT_REGION
 
-# ---------------------------------------------------------------------------------------------------------------------
+###
+# Required Parameters
+###
+
+variable "region" {
+  description = "Region to deploy the vault cluster"
+  type        = string
+}
+
+###
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
-# ---------------------------------------------------------------------------------------------------------------------
+###
 
 variable "create_dns_entry" {
   description = "If set to true, this module will create a Route 53 DNS A record for the ELB in the var.hosted_zone_id hosted zone with the domain name in var.vault_domain_name."
@@ -40,24 +49,6 @@ variable "ssh_key_name" {
   description = "The name of an EC2 Key Pair that can be used to SSH to the EC2 Instances in this cluster. Set to an empty string to not associate a Key Pair."
   type        = string
   default     = null
-}
-
-variable "subnet_tags" {
-  description = "Tags used to find subnets for vault and consul servers"
-  type        = map(string)
-  default     = {}
-}
-
-variable "vpc_tags" {
-  description = "Tags used to find a vpc for building resources in"
-  type        = map(string)
-  default     = {}
-}
-
-variable "use_default_vpc" {
-  description = "Whether to use the default VPC - NOT recommended for production! - should more likely change this to false and use the vpc_tags to find your vpc"
-  type        = bool
-  default     = true
 }
 
 variable "vault_cluster_name" {
@@ -102,12 +93,6 @@ variable "consul_cluster_tag_key" {
   default     = "consul-servers"
 }
 
-variable "region" {
-  description = "Region to deploy the vault cluster"
-  type        = string
-  default     = "us-west-2"
-}
-
 variable "standard_tags" {
   description = "Standard tags to set on the Instances in the ASG"
   type        = map(string)
@@ -116,9 +101,6 @@ variable "standard_tags" {
     "owner"        = "hc-joshua"
     "TTL"          = "6"
   }
-}
-
-data "aws_region" "current" {
 }
 
 variable "subnet_second_octet" {
