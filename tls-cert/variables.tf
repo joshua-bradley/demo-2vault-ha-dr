@@ -7,7 +7,7 @@ variable "owner" {
 variable "dns_names" {
   description = "List of DNS names for which the certificate will be valid (e.g. vault.service.consul, foo.example.com)."
   type        = list(string)
-  default     = ["*.us-west-2.elb.amazonaws.com", "*.eu-west-2.elb.amazonaws.com", "vault.service.consul", "vault.example.com"]
+  default     = ["*.eu-west-2.compute.amazonaws.com", "*.us-west-2.compute.amazonaws.com", "*.us-west-2.elb.amazonaws.com", "*.eu-west-2.elb.amazonaws.com", "vault.service.consul", "vault.example.com"]
 }
 
 variable "ip_addresses" {

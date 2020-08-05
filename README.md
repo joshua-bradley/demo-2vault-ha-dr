@@ -2,8 +2,7 @@
 
 export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
 
-`$ vault operator init -key-shares=3 -key-threshold=1 > vault.txt`
-vault operator init -recovery-shares=1 -recovery-threshold=1
+vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
 ```
 Recovery Key 1: ...
 
@@ -45,6 +44,8 @@ sudo systemctl restart vault
 
 *.eu-west-2.elb.amazonaws.com
 *.us-west-2.elb.amazonaws.com
+*.us-west-2.compute.amazonaws.com
+*.eu-west-2.compute.amazonaws.com
 
 [![Maintained by joshua-bradley.io](https://img.shields.io/static/v1?style=flat-square&logo=terraform&label=maintained%20by&message=joshua-bradley.io&color=blueviolet)](https://github.com/joshua-bradley)
 
@@ -68,3 +69,10 @@ Code: 500. Errors:
 	* error unwrapping secondary token: Post "https://10.0.104.139:8200/v1/sys/wrapping/unwrap": dial tcp 10.0.104.139:8200: i/o timeout
 ```
 
+#!/bin/bash
+vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
+sudo systemctl restart vault
+sleep 5
+vault status
+echo -e "\e[1;32mto licence consul run:\e[0m \n\tconsul license put <license>"
+echo -e "\e[1;32mto licence vault run:\e[0m \n\tvault write -f /sys/license text=<license>"
