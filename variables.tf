@@ -55,20 +55,8 @@ variable "vault_cluster_name" {
   default     = "vault-example"
 }
 
-variable "consul_cluster_name" {
-  description = "What to name the Consul server cluster and all of its associated resources"
-  type        = string
-  default     = "consul-example"
-}
-
 variable "vault_cluster_size" {
   description = "The number of Vault server nodes to deploy. We strongly recommend using 3 or 5."
-  type        = number
-  default     = 3
-}
-
-variable "consul_cluster_size" {
-  description = "The number of Consul server nodes to deploy. We strongly recommend using 3 or 5."
   type        = number
   default     = 3
 }
@@ -77,6 +65,23 @@ variable "vault_instance_type" {
   description = "The type of EC2 Instance to run in the Vault ASG"
   type        = string
   default     = "t3.micro"
+}
+
+variable "enable_auto_unseal" {
+  description = "(Vault Enterprise only) Emable auto unseal of the Vault cluster"
+  default     = false
+}
+
+variable "consul_cluster_name" {
+  description = "What to name the Consul server cluster and all of its associated resources"
+  type        = string
+  default     = "consul-example"
+}
+
+variable "consul_cluster_size" {
+  description = "The number of Consul server nodes to deploy. We strongly recommend using 3 or 5."
+  type        = number
+  default     = 3
 }
 
 variable "consul_instance_type" {

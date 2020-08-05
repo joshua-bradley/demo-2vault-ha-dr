@@ -8,6 +8,9 @@ module "vault_cluster" {
   cluster_size  = var.vault_cluster_size
   instance_type = var.vault_instance_type
 
+  enable_auto_unseal      = var.enable_auto_unseal
+  auto_unseal_kms_key_arn = aws_kms_key.vault.arn
+
   ami_id    = var.ami_id
   user_data = data.template_file.user_data_vault_cluster.rendered
 
@@ -38,9 +41,10 @@ data "template_file" "user_data_vault_cluster" {
   template = file("${path.module}/templates/user-data-vault.sh")
 
   vars = {
-    aws_region               = var.region
-    consul_cluster_tag_key   = var.consul_cluster_tag_key
-    consul_cluster_tag_value = var.consul_cluster_name
+    aws_region                 = var.region
+    consul_cluster_tag_key     = var.consul_cluster_tag_key
+    consul_cluster_tag_value   = var.consul_cluster_name
+    auto_unseal_kms_key_key_id = aws_kms_key.vault.key_id
   }
 }
 
@@ -87,12 +91,6 @@ module "vault_elb" {
   domain_name = var.vault_domain_name
 }
 
-# Look up the Route 53 Hosted Zone by domain name
-# data "aws_route53_zone" "selected" {
-#   count = var.create_dns_entry ? 1 : 0
-#   name  = "${var.hosted_zone_domain_name}."
-# }
-
 ###
 # Deploy consul server cluster
 ###
@@ -128,6 +126,18 @@ data "template_file" "user_data_consul" {
   vars = {
     consul_cluster_tag_key   = var.consul_cluster_tag_key
     consul_cluster_tag_value = var.consul_cluster_name
+  }
+}
+
+###
+# Vault auto-unseal resources
+###
+resource "aws_kms_key" "vault" {
+  description             = "Vault unseal key"
+  deletion_window_in_days = 7
+
+  tags = {
+    Name = "vault-kms-unseal-${random_id.cluster_name.hex}"
   }
 }
 
