@@ -41,10 +41,10 @@ data "template_file" "user_data_vault_cluster" {
   template = file("${path.module}/templates/user-data-vault.sh")
 
   vars = {
-    aws_region                 = var.region
-    consul_cluster_tag_key     = var.consul_cluster_tag_key
-    consul_cluster_tag_value   = var.consul_cluster_name
-    auto_unseal_kms_key_key_id = aws_kms_key.vault.key_id
+    aws_region               = var.region
+    consul_cluster_tag_key   = var.consul_cluster_tag_key
+    consul_cluster_tag_value = var.consul_cluster_name
+    auto_unseal_kms_key_id   = aws_kms_key.vault.key_id
   }
 }
 
