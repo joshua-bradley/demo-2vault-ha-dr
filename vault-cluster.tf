@@ -89,6 +89,7 @@ module "vault_elb" {
   #   hosted_zone_id = var.create_dns_entry ? join("", data.aws_route53_zone.selected.*.zone_id) : ""
 
   domain_name = var.vault_domain_name
+  lb_port     = var.vault_lb_port
 }
 
 ###

@@ -67,6 +67,11 @@ variable "vault_instance_type" {
   default     = "t3.micro"
 }
 
+variable "vault_lb_port" {
+  description = "The port the load balancer should listen on for API requests."
+  default     = 8200
+}
+
 variable "enable_auto_unseal" {
   description = "(Vault Enterprise only) Emable auto unseal of the Vault cluster"
   default     = false
