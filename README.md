@@ -1,9 +1,11 @@
 ### walkthrough
 
 enterprise binaries
+
 export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
 
 open source binaries
+
 export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.3/consul_1.8.3_linux_amd64.zip"
 
 vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
