@@ -26,6 +26,11 @@ variable "ssh_key_name" {
   type        = string
 }
 
+variable "prefix" {
+  description = "Prefix to add to the name of the various tags and objects created by this deployment"
+  type        = string
+}
+
 ###
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
@@ -105,8 +110,8 @@ variable "standard_tags" {
   description = "Standard tags to set on the Instances in the ASG"
   type        = map(string)
   default = {
-    "project-name" = "hc-jb-zoox"
-    "owner"        = "hc-joshua"
+    "project-name" = "hc-demo"
+    "owner"        = "me.self"
     "TTL"          = "6"
   }
 }
