@@ -1,19 +1,21 @@
 ### walkthrough
 
 ### enterprise binaries
-```shell
-
-$ export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
+```bash
+$ export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && \
+export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
 ```
 
-```shell
-open source binaries
+### open source binaries
 
-export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.3/consul_1.8.3_linux_amd64.zip"
+```bash
+$ export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip" && \
+export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.3/consul_1.8.3_linux_amd64.zip"
 ```
 
-vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
+
 ```
+$ vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
 Recovery Key 1: ...
 
 Initial Root Token: ...
@@ -38,9 +40,9 @@ Version                                1.5.0+ent
 Cluster Name                           vault-cluster-d67543d6
 Cluster ID                             bb573127-1d7f-25b4-e69a-1b42d4e3b65e
 HA Enabled                             true
-HA Cluster                             https://10.0.104.139:8201
+HA Cluster                             https://10.0.0.10:8201
 HA Mode                                standby
-Active Node Address                    https://10.0.104.139:8200
+Active Node Address                    https://10.0.0.10:8200
 Performance Standby Node               true
 Performance Standby Last Remote WAL    0
 ```
