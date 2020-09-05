@@ -1,12 +1,16 @@
 ### walkthrough
 
-enterprise binaries
+### enterprise binaries
+```shell
 
-export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
+$ export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.0+ent/vault_1.5.0+ent_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.1+ent/consul_1.8.1+ent_linux_amd64.zip"
+```
 
+```shell
 open source binaries
 
 export VAULT_DOWNLOAD_URL="https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip" && export CONSUL_DOWNLOAD_URL="https://releases.hashicorp.com/consul/1.8.3/consul_1.8.3_linux_amd64.zip"
+```
 
 vault operator init -recovery-shares=1 -recovery-threshold=1 2>&1 | tee vault.txt
 ```
@@ -88,15 +92,3 @@ echo -e "\e[1;32mto licence vault run:\e[0m \n\tvault write -f /sys/license text
 ```
 
 vault read /sys/license
-
-
-
-|         ID          |    ZONE    |           NAME ▲            |  STATE  |   TYPE   |   PUBLIC IP    |  PRIVATE IP  | UPTIME  |        KEYPAIR        |
-|---------------------|------------|-----------------------------|---------|----------|----------------|--------------|---------|-----------------------|
-| i-0cead8b5eeda1b037 | us-west-2a | hc-jb-app-hashiapp-instance | running | t3.micro | 54.203.240.145 | 10.0.10.82   | 13 days | hc-jb-app-ssh-key.pem |
-| i-0919bbfaa610beffc | us-west-2a | hc-jb-app-hashiapp-instance | running | t3.micro | 54.214.209.157 | 10.0.10.102  | 13 days | hc-jb-app-ssh-key.pem |
-| i-0a9b9766321489bc5 | us-west-2a | hc-jb-app-hashiapp-instance | running | t3.micro | 54.185.135.152 | 10.0.10.145  | 13 days | hc-jb-app-ssh-key.pem |
-| i-0bf03c12e4bd8dfc1 | us-west-2d | hc-jb-us-consul             | running | t3.micro | 34.222.204.104 | 10.0.104.182 | 3 hours | hc-jb-us-vault-demo   |
-| i-01ef9f75b73848a26 | us-west-2a | hc-jb-us-consul             | running | t3.micro | 34.214.215.164 | 10.0.101.190 | 3 hours | hc-jb-us-vault-demo   |
-| i-085124262c3a7325e | us-west-2c | hc-jb-us-consul             | running | t3.micro | 34.222.84.76   | 10.0.103.190 | 3 hours | hc-jb-us-vault-demo   |
-| i-0da164e49a87c100f | us-west-2b | hc-jb-us-vault              | running | t3.micro | 34.220.241.2   | 10.0.102.123 | 3 hours | hc-jb-us-vault-demo   |
