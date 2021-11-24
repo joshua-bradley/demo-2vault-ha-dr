@@ -1,0 +1,29 @@
+# these are required parameters to deploy vault cluster with this repository
+region = "target-aws-region"
+ami_id = "ami-with-vault-and-consul-installed"
+ssh_key_name = "name-of-a-valid-ssh-key-pair-in-target-aws-region"
+prefix = "prefix-to-be-added-to-the-name-of-deployed-aws-resources"
+
+# optional parameters to customize the vault cluster deployment
+
+# networking
+# create_dns_entry = false
+# hosted_zone_domain_name = ""
+# vault_domain_name = ""
+# subnet_second_octet = ""
+
+# vault cluster attributes
+# vault_cluster_name = ""
+# vault_cluster_size = 1
+# vault_instance_type = ""
+# vault_lb_port = ""
+# enable_auto_unseal = false
+
+# consul cluster attributes
+# consul_cluster_name = ""
+# consul_cluster_size = 1
+# consul_instance_type = ""
+# consul_cluster_tag_key = ""
+
+# common attributes
+# standard_tags = {}

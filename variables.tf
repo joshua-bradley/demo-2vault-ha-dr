@@ -1,11 +1,12 @@
-# ---------------------------------------------------------------------------------------------------------------------
+###
 # ENVIRONMENT VARIABLES
 # Define these secrets as environment variables
-# ---------------------------------------------------------------------------------------------------------------------
-
+# ---
 # AWS_ACCESS_KEY_ID
 # AWS_SECRET_ACCESS_KEY
+# AWS_SESSION_TOKEN
 # AWS_DEFAULT_REGION
+###
 
 ###
 # Required Parameters
@@ -36,6 +37,7 @@ variable "prefix" {
 # These parameters have reasonable defaults.
 ###
 
+# network parameters
 variable "create_dns_entry" {
   description = "If set to true, this module will create a Route 53 DNS A record for the ELB in the var.hosted_zone_id hosted zone with the domain name in var.vault_domain_name."
   type        = bool
@@ -57,7 +59,7 @@ variable "vault_domain_name" {
 variable "vault_cluster_name" {
   description = "What to name the Vault server cluster and all of its associated resources"
   type        = string
-  default     = "vault-example"
+  default     = "vault-us"
 }
 
 variable "vault_cluster_size" {
@@ -85,7 +87,7 @@ variable "enable_auto_unseal" {
 variable "consul_cluster_name" {
   description = "What to name the Consul server cluster and all of its associated resources"
   type        = string
-  default     = "consul-example"
+  default     = "consul-us"
 }
 
 variable "consul_cluster_size" {

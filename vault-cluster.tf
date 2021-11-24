@@ -2,9 +2,9 @@
 # Deploy Vault server cluster
 ###
 module "vault_cluster" {
-  source = "github.com/hashicorp/terraform-aws-vault//modules/vault-cluster?ref=v0.13.8"
+  source = "github.com/hashicorp/terraform-aws-vault//modules/vault-cluster?ref=v0.13.9"
 
-  cluster_name  = var.vault_cluster_name
+  cluster_name  = "${var.prefix}-${var.vault_cluster_name}-${random_id.suffix_id.hex}"
   cluster_size  = var.vault_cluster_size
   instance_type = var.vault_instance_type
 
@@ -29,11 +29,14 @@ module "vault_cluster" {
   ssh_key_name                         = var.ssh_key_name
 }
 
-# Consul iam policies to allow vault cluster to discover consul backend
-module "consul_iam_policies_servers" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-iam-policies?ref=v0.7.7"
+# Vault auto-unseal resources
+resource "aws_kms_key" "vault" {
+  description             = "Vault unseal key"
+  deletion_window_in_days = 7
 
-  iam_role_id = module.vault_cluster.iam_role_id
+  tags = {
+    Name = "${var.prefix}-vault-kms-unseal-${random_id.suffix_id.hex}"
+  }
 }
 
 # This script will configure and start Vault
@@ -48,26 +51,14 @@ data "template_file" "user_data_vault_cluster" {
   }
 }
 
-# Consul sg for allowing internal communications between agents and servers
-module "security_group_rules" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-client-security-group-rules?ref=v0.7.7"
-
-  security_group_id = module.vault_cluster.security_group_id
-
-  # To make testing easier, we allow requests from any IP address here but in a production deployment, we *strongly*
-  # recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
-
-  allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
-}
-
 # Deploy an elb for public access to vault
 module "vault_elb" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  source = "github.com/hashicorp/terraform-aws-vault//modules/vault-elb?ref=v0.13.8"
+  source = "github.com/hashicorp/terraform-aws-vault//modules/vault-elb?ref=v0.13.9"
   #   source = "./modules/vault-elb"
 
-  name = var.vault_cluster_name
+  name = "${var.prefix}-${var.vault_cluster_name}-${random_id.suffix_id.hex}"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.public_subnets
@@ -88,13 +79,15 @@ module "vault_elb" {
   lb_port     = var.vault_lb_port
 }
 
+# --------------------------------------------------
+
 ###
 # Deploy consul server cluster
 ###
 module "consul_cluster" {
-  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-cluster?ref=v0.7.7"
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-cluster?ref=v0.7.10"
 
-  cluster_name  = var.consul_cluster_name
+  cluster_name  = "${var.prefix}-${var.consul_cluster_name}-${random_id.suffix_id.hex}"
   cluster_size  = var.consul_cluster_size
   instance_type = var.consul_instance_type
 
@@ -126,17 +119,26 @@ data "template_file" "user_data_consul" {
   }
 }
 
-###
-# Vault auto-unseal resources
-###
-resource "aws_kms_key" "vault" {
-  description             = "Vault unseal key"
-  deletion_window_in_days = 7
+# Consul iam policies to allow vault cluster to discover consul backend
+module "consul_iam_policies_servers" {
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-iam-policies?ref=v0.7.10"
 
-  tags = {
-    Name = "vault-kms-unseal-${random_id.cluster_name.hex}"
-  }
+  iam_role_id = module.vault_cluster.iam_role_id
 }
+
+# Consul sg for allowing internal communications between agents and servers
+module "security_group_rules" {
+  source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-client-security-group-rules?ref=v0.7.10"
+
+  security_group_id = module.vault_cluster.security_group_id
+
+  # To make testing easier, we allow requests from any IP address here but in a production deployment, we *strongly*
+  # recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
+
+  allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
+}
+
+# --------------------------------------------------
 
 ###
 # define the aws network to place the provisioned ec2 resources
@@ -144,7 +146,7 @@ resource "aws_kms_key" "vault" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name = "${random_id.cluster_name.hex}-vpc"
+  name = "${var.prefix}-vpc-${random_id.suffix_id.hex}"
 
   cidr = "10.${var.subnet_second_octet}.0.0/16"
 
@@ -165,13 +167,13 @@ module "vpc" {
   enable_dns_support   = true
 
   public_subnet_tags = {
-    Name = "hc-jb-name-public"
+    Name = "${var.prefix}-public-${random_id.suffix_id.hex}"
   }
 
   # tags = local.tags
 
   vpc_tags = {
-    Name    = "${random_id.cluster_name.hex}-vpc"
+    Name    = "${var.prefix}-vpc-${random_id.suffix_id.hex}"
     Purpose = "vault"
   }
 }

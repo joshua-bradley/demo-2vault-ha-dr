@@ -14,13 +14,14 @@ terraform {
 }
 
 provider "aws" {
-  version = "~> 2.5"
+  # version = "~> 2.5"
+  version = "~> 3.0"
   region  = var.region
 }
 
 ###
 
-resource "random_id" "cluster_name" {
+resource "random_id" "suffix_id" {
   byte_length = 4
 }
 
@@ -29,7 +30,7 @@ locals {
   tags = merge(
     var.standard_tags,
     {
-      "ClusterName" = random_id.cluster_name.hex
+      "ClusterName" = "${var.prefix}-cluster-${random_id.suffix_id.hex}"
     },
   )
 }
